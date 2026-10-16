@@ -25,6 +25,16 @@ func TestNormalizeVersion(t *testing.T) {
 }
 
 func TestUpdateCheckDisabled(t *testing.T) {
+	// Copia de JARVIS: sin opt-in la comprobación está apagada; con opt-in, manda el opt-out de upstream.
+	t.Run("off by default", func(t *testing.T) {
+		t.Setenv(EnvUpdateCheck, "")
+		t.Setenv(EnvNoUpdateCheck, "")
+		if !updateCheckDisabled() {
+			t.Fatal("update check must be disabled unless ENGRAM_UPDATE_CHECK opts in")
+		}
+	})
+	t.Setenv(EnvUpdateCheck, "1")
+
 	tests := []struct {
 		name  string
 		value string
@@ -86,6 +96,7 @@ func TestIsNewer(t *testing.T) {
 }
 
 func TestCheckLatest(t *testing.T) {
+	t.Setenv(EnvUpdateCheck, "1") // copia de JARVIS: la comprobación es opt-in
 	t.Run("opt out skips the HTTP transport for a released version", func(t *testing.T) {
 		t.Setenv("ENGRAM_NO_UPDATE_CHECK", "1")
 

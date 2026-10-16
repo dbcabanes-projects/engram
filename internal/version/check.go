@@ -111,9 +111,20 @@ func CheckLatest(current string) CheckResult {
 	}
 }
 
-func updateCheckDisabled() bool {
-	v := strings.TrimSpace(strings.ToLower(os.Getenv(EnvNoUpdateCheck)))
+// EnvUpdateCheck activa a propósito la comprobación de versiones (copia de JARVIS).
+const EnvUpdateCheck = "ENGRAM_UPDATE_CHECK"
+
+func envOn(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
 	return v == "1" || v == "true" || v == "yes" || v == "on"
+}
+
+// updateCheckDisabled — en la copia de JARVIS la comprobación va APAGADA de serie: es la única
+// llamada que el binario hace fuera de casa (api.github.com) sin que nadie la pida, y la regla es que
+// nada salga de los dominios de Dani. Solo corre con ENGRAM_UPDATE_CHECK=1, y el opt-out de upstream
+// (ENGRAM_NO_UPDATE_CHECK) sigue mandando por encima.
+func updateCheckDisabled() bool {
+	return envOn(EnvNoUpdateCheck) || !envOn(EnvUpdateCheck)
 }
 
 // normalizeVersion strips a leading "v" prefix.

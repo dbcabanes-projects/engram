@@ -450,6 +450,8 @@ func newServerWithActivity(s *store.Store, cfg MCPConfig, allowlist map[string]b
 		version,
 		server.WithToolCapabilities(true),
 		server.WithInstructions(buildServerInstructions(allowlist)),
+		// Copia de JARVIS: el recordatorio de guardar va en el servidor (ver jarvis_recordatorio.go).
+		server.WithToolHandlerMiddleware(nuevoRecordatorioGuardar(15*time.Minute, time.Now).middleware),
 	)
 
 	registerTools(srv, s, cfg, allowlist, activity)
@@ -3469,8 +3471,14 @@ func resolveReadProject(s *store.Store, override string) (projectpkg.DetectionRe
 // resolveMCPProject is the MCP adapter around the shared mode-aware resolver.
 // Cwd detection remains allowed to identify an empty/new repository, while an
 // explicit request or process override must name an existing bucket.
+//
+// Copia de JARVIS: el override de proceso (`engram mcp --project`) se trata como la detección por cwd,
+// así que PUEDE nombrar un proyecto vacío. Es como se conecta el portátil, por SSH: el proyecto sale de su
+// carpeta, que en el A6 no existe, y con la regla de upstream la primera lectura de un repo nuevo daba
+// unknown_project con la pista «omite project para auto-detectar», que aquí detectaría la carpeta del A6.
+// Una petición explícita (`project` en la llamada) sigue teniendo que existir: eso caza las erratas.
 func resolveMCPProject(s *store.Store, explicit, defaultProject string) (projectpkg.DetectionResult, error) {
-	return resolveMCPProjectWithPolicy(s, explicit, defaultProject, true)
+	return resolveMCPProjectWithPolicy(s, explicit, defaultProject, false)
 }
 
 func resolveMCPProjectWithPolicy(s *store.Store, explicit, defaultProject string, requireKnownProcess bool) (projectpkg.DetectionResult, error) {
