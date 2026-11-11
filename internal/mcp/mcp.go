@@ -449,7 +449,7 @@ func newServerWithActivity(s *store.Store, cfg MCPConfig, allowlist map[string]b
 		"engram",
 		version,
 		server.WithToolCapabilities(true),
-		server.WithInstructions(buildServerInstructions(allowlist)),
+		server.WithInstructions(buildServerInstructions(allowlist)+avisoProyectoNuevo(s, cfg.DefaultProject)),
 		// Copia de JARVIS: el recordatorio de guardar va en el servidor (ver jarvis_recordatorio.go).
 		server.WithToolHandlerMiddleware(nuevoRecordatorioGuardar(15*time.Minute, time.Now).middleware),
 	)

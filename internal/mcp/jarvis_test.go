@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -58,5 +59,21 @@ func TestJarvisRecordatorioGuardar(t *testing.T) {
 	llamar("mem_save")
 	if n := llamar("mem_search"); n != 1 {
 		t.Fatalf("después de guardar no toca aviso: %d contenidos", n)
+	}
+}
+
+func TestJarvisAvisoProyectoNuevo(t *testing.T) {
+	s := newMCPTestStore(t)
+	if aviso := avisoProyectoNuevo(s, "ascelcre"); !strings.Contains(aviso, `"ascelcre"`) {
+		t.Fatalf("proyecto sin memorias: aviso = %q, quiero el aviso con el nombre", aviso)
+	}
+	if aviso := avisoProyectoNuevo(s, ""); aviso != "" {
+		t.Fatalf("sin override: aviso = %q, quiero vacío", aviso)
+	}
+	if err := s.CreateSession("s", "ascelcre", ""); err != nil {
+		t.Fatal(err)
+	}
+	if aviso := avisoProyectoNuevo(s, "ascelcre"); aviso != "" {
+		t.Fatalf("proyecto con memorias: aviso = %q, quiero vacío", aviso)
 	}
 }
